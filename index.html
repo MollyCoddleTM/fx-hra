@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Jarda Quest</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: black;
+    }
+    #intro {
+      width: 100vw;
+      height: 100vh;
+      background: url('intro.png') center center / cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #start-button {
+      padding: 20px 40px;
+      font-size: 24px;
+      background: #ffcc00;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+    }
+    #start-button:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div id="intro">
+    <button id="start-button" onclick="window.location.href='game.html'">Start</button>
+  </div>
+</body>
+</html>

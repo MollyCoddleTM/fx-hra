@@ -1,0 +1,737 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Foxconn Hra – Animovaná postava</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container" onclick="handleClick(event)">
+    <img src="background.png" id="background" alt="Pozadí">
+    <div id="gate-marker"></div>
+    
+    <img src="walk_frame_1.png" id="character" alt="Postava" onclick="talkToCharacter(event)">
+    <img src="oberon_wizard.png" id="oberon-wizard" alt="Kouzelník u hádanky" style="display: none;">
+    <img src="S4_Elf.png" id="S4-Elf" alt="Elf u hádanky">
+    <img src="Customer_Elf.png" id="Customer-Elf" alt="Customer u hádanky" style="display: none;">
+    <img src="Dev_Monk.png" id="Dev-Monk" alt="Monk u hádanky" style="display: none;">
+    <img src="Qlik_Warrior.png" id="Qlik-Warrior" alt="Warrior u hádanky" style="display: none;">
+    <img src="Franz_King.png" id="Franz-King" alt="King" style="display: none;">
+    <img src="Kolo.png" id="Obrazek-Kolo" alt="Kolo">
+  </div>
+
+  <script>
+
+function showPopupWindow(popupId, imagePath, imageAlt, onCloseCallback = null) {
+  const popup = document.createElement("div");
+  popup.id = popupId;
+  popup.style.position = "fixed";
+  popup.style.top = "0";
+  popup.style.left = "0";
+  popup.style.width = "100vw";
+  popup.style.height = "100vh";
+  popup.style.background = "rgba(0, 0, 0, 0.85)";
+  popup.style.display = "flex";
+  popup.style.flexDirection = "column";
+  popup.style.justifyContent = "center";
+  popup.style.alignItems = "center";
+  popup.style.zIndex = "10000";
+
+  // Vytvoření HTML obsahu s parametry
+  popup.innerHTML = `
+    <img src="${imagePath}" alt="${imageAlt}" 
+         style="width: 100vw; max-height: 90vh; object-fit: contain;">
+    <button style="margin-top: 20px; padding: 10px 20px; font-size: 18px;">
+      Zavřít
+    </button>
+  `;
+
+  // Akce pro zavření
+  popup.querySelector("button").addEventListener("click", () => {
+    popup.remove();
+    if (typeof onCloseCallback === "function") {
+      onCloseCallback();
+    }
+  });
+
+  document.body.appendChild(popup);
+}
+
+
+    const character = document.getElementById("character");
+    
+    let walkFramesRight = ["walk_frame_1.png", "walk_frame_2.png", "walk_frame_3.png"];
+    let walkFramesLeft = ["mirrored_walk_frame_1.png", "mirrored_walk_frame_2.png", "mirrored_walk_frame_3.png"];
+    let walkFrames = walkFramesRight;
+    
+    let animationInterval = null;
+
+    const interactiveArea = { left: 62, top: 47, width: 4, height: 10 };
+    const interactiveAreaElf = { left: 30, top: 80, width: 4, height: 10 };
+    const interactiveAreaCustomer= { left: 50, top: 70, width: 4, height: 10 };
+    const interactiveAreaDev = { left: 70, top: 80, width: 4, height: 10 };
+    const interactiveAreaQlik = { left: 38, top: 58, width: 4, height: 10 };
+    const interactiveAreaFranz = { left: 53, top: 43, width: 4, height: 10 };
+    
+
+    let devUnlocked = false;
+    let customerUnlocked = false;
+    let oberonUnlocked = false;
+    let qlikUnlocked = false;
+    let franzUnlocked = false;
+    
+
+
+
+
+    function isGreen(x, y) {
+      return y > 45 && y < 90;
+    }
+
+    function startWalkingAnimation() {
+      let frame = 0;
+      animationInterval = setInterval(() => {
+        character.src = walkFrames[frame % walkFrames.length];
+        frame++;
+      }, 150);
+    }
+
+    function stopWalkingAnimation() {
+      clearInterval(animationInterval);
+      character.src = walkFrames[0];
+    }
+
+    function handleClick(event) {
+      const container = document.getElementById("game-container");
+      const rect = container.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const clickY = event.clientY - rect.top;
+      const xPercent = (clickX / rect.width) * 100;
+      const yPercent = (clickY / rect.height) * 100;
+
+      if (!isGreen(xPercent, yPercent)) return;
+
+      
+    walkFrames = (clickX > character.getBoundingClientRect().left) ? walkFramesRight : walkFramesLeft;
+    startWalkingAnimation();
+    
+
+      character.style.transition = "left 1s linear, top 1s linear";
+      character.style.left = (clickX - character.offsetWidth / 2) + "px";
+      character.style.top = (clickY - character.offsetHeight / 2) + "px";
+    
+
+      const inAreaElf =
+        xPercent >= interactiveAreaElf.left &&
+        xPercent <= interactiveAreaElf.left + interactiveAreaElf.width &&
+        yPercent >= interactiveAreaElf.top &&
+        yPercent <= interactiveAreaElf.top + interactiveAreaElf.height;
+
+        setTimeout(() => {
+        stopWalkingAnimation();
+        if (inAreaElf) {
+          showRiddleElf();
+        }
+      }, 1000);
+
+
+
+
+      let inArea = false;
+        if (oberonUnlocked) {
+
+       inArea =
+        xPercent >= interactiveArea.left &&
+        xPercent <= interactiveArea.left + interactiveArea.width &&
+        yPercent >= interactiveArea.top &&
+        yPercent <= interactiveArea.top + interactiveArea.height;
+
+        setTimeout(() => {
+            stopWalkingAnimation();
+            if (inArea) {
+              showRiddle();
+            }
+          }, 1000);
+        }
+
+
+        let inAreaCustomer = false;
+        if (customerUnlocked) {
+        inAreaCustomer =
+        xPercent >= interactiveAreaCustomer.left &&
+        xPercent <= interactiveAreaCustomer.left + interactiveAreaCustomer.width &&
+        yPercent >= interactiveAreaCustomer.top &&
+        yPercent <= interactiveAreaCustomer.top + interactiveAreaCustomer.height;
+
+        setTimeout(() => {
+            stopWalkingAnimation();
+            if (inAreaCustomer) {
+              showRiddleCustomer();
+            }
+          }, 1000);
+        }
+
+
+        let inAreaDev = false;
+        if (devUnlocked) {
+          inAreaDev =
+            xPercent >= interactiveAreaDev.left &&
+            xPercent <= interactiveAreaDev.left + interactiveAreaDev.width &&
+            yPercent >= interactiveAreaDev.top &&
+            yPercent <= interactiveAreaDev.top + interactiveAreaDev.height;
+
+          setTimeout(() => {
+            stopWalkingAnimation();
+            if (inAreaDev) {
+              showRiddleDev();
+            }
+          }, 1000);
+        }
+
+
+        let inAreaQlik = false;
+        if (qlikUnlocked) {
+          inAreaQlik =
+        xPercent >= interactiveAreaQlik.left &&
+        xPercent <= interactiveAreaQlik.left + interactiveAreaQlik.width &&
+        yPercent >= interactiveAreaQlik.top &&
+        yPercent <= interactiveAreaQlik.top + interactiveAreaQlik.height;
+        
+        setTimeout(() => {
+            stopWalkingAnimation();
+            if (inAreaQlik) {
+              showRiddleQlik();
+            }
+          }, 1000);
+        }
+
+
+        let inAreaFranz = false;
+        if (franzUnlocked) {
+          inAreaFranz =
+            xPercent >= interactiveAreaFranz.left &&
+            xPercent <= interactiveAreaFranz.left + interactiveAreaFranz.width &&
+            yPercent >= interactiveAreaFranz.top &&
+            yPercent <= interactiveAreaFranz.top + interactiveAreaFranz.height;
+
+          setTimeout(() => {
+            stopWalkingAnimation();
+            if (inAreaFranz) {
+              showPopupWindow('Franz-window1','Customer_Focus.jpg','Franz1', () => {
+              showPopupWindow('Franz-window2', 'Konec.png', 'Konec')
+});
+            }
+          }, 1000);
+        }
+
+
+      }
+  
+
+
+
+//Hadanka Oberon
+    function showRiddle() {
+      const popup = document.createElement("div");
+      popup.id = "riddle-popup";
+      
+popup.innerHTML = `
+  <div id="riddle-content" style="
+    background: white;
+    padding: 60px;
+    border-radius: 12px;
+    width: 800px;
+    max-width: 95vw;
+    text-align: center;
+    font-size: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
+  ">
+    <h2 style="font-size: 32px; margin-bottom: 20px;">Hádanka</h2>
+    <p style="margin-bottom: 30px;">
+      Výčitka Titanii:<br> V zlou chvíli,troufalá Titanie,<br>
+      se potkáváme v záři měsíčné!
+    </p>
+    <div class="riddle-images" style="margin-bottom: 30px;">
+      <img src="image1.png" alt="Obrázek 1" style="max-width: 45%; margin: 10px;">
+      <img src="image2.png" alt="Obrázek 2" style="max-width: 45%; margin: 10px;">
+    </div>
+    <input type="text" id="riddle-answer" placeholder="Tvoje odpověď" style="font-size: 18px; padding: 10px; width: 60%;">
+    <div style="margin-top: 20px;">
+      <button onclick="checkRiddleAnswer()" style="font-size: 18px; padding: 10px 20px;">Zkontrolovat</button>
+    </div>
+    <p id="riddle-feedback" style="margin-top: 20px; font-weight: bold;"></p>
+  </div>
+`;
+
+      popup.style.position = "fixed";
+      popup.style.zIndex = "9999";
+      popup.style.top = "0";
+      popup.style.left = "0";
+      popup.style.width = "100vw";
+      popup.style.height = "100vh";
+      popup.style.background = "rgba(0, 0, 0, 0.7)";
+      popup.style.display = "flex";
+      popup.style.justifyContent = "center";
+      popup.style.alignItems = "center";
+      document.body.appendChild(popup);
+    }
+
+
+// Hadanka Elf
+    function showRiddleElf() {
+      const popup = document.createElement("div");
+      popup.id = "riddle-popup";
+      
+popup.innerHTML = `
+  <div id="riddle-content" style="
+    background: white;
+    padding: 60px;
+    border-radius: 12px;
+    width: 800px;
+    max-width: 95vw;
+    text-align: center;
+    font-size: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
+  ">
+    <h2 style="font-size: 32px; margin-bottom: 20px;">Hádanka</h2>
+    <p style="margin-bottom: 30px;">
+      50.76572637819567<br> 
+      15.05984560272327
+    </p>
+    <div class="riddle-images" style="margin-bottom: 30px;">
+      <img src="cloud1.jpg" alt="Cloud 1" style="max-width: 45%; margin: 10px;">
+      <img src="Cloud2.jpg" alt="Cloud 2" style="max-width: 45%; margin: 10px;">
+    </div>
+    <input type="text" id="riddle-answer" placeholder="Tvoje odpověď" style="font-size: 18px; padding: 10px; width: 60%;">
+    <div style="margin-top: 20px;">
+      <button onclick="checkRiddleAnswerElf()" style="font-size: 18px; padding: 10px 20px;">Zkontrolovat</button>
+    </div>
+    <p id="riddle-feedback" style="margin-top: 20px; font-weight: bold;"></p>
+  </div>
+`;
+
+      popup.style.position = "fixed";
+      popup.style.zIndex = "9999";
+      popup.style.top = "0";
+      popup.style.left = "0";
+      popup.style.width = "100vw";
+      popup.style.height = "100vh";
+      popup.style.background = "rgba(0, 0, 0, 0.7)";
+      popup.style.display = "flex";
+      popup.style.justifyContent = "center";
+      popup.style.alignItems = "center";
+      document.body.appendChild(popup);
+    }
+
+
+// Hadanka Customer
+function showRiddleCustomer() {
+      const popup = document.createElement("div");
+      popup.id = "riddle-popup";
+      
+popup.innerHTML = `
+  <div id="riddle-content" style="
+    background: white;
+    padding: 60px;
+    border-radius: 12px;
+    width: 800px;
+    max-width: 95vw;
+    text-align: center;
+    font-size: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
+  ">
+    <h2 style="font-size: 32px; margin-bottom: 20px;">Hádanka</h2>
+    <p style="margin-bottom: 30px;">
+      Jsem jediný a přesto mě mají tisíce v rukou <br>
+
+    </p>
+    <div class="riddle-images" style="margin-bottom: 30px;">
+      <img src="metr1.jpg" alt="Matr1" style="max-width: 45%; margin: 10px;">
+      <img src="metr2.jpg" alt="Matr2" style="max-width: 45%; margin: 10px;">
+    </div>
+    <input type="text" id="riddle-answer" placeholder="Tvoje odpověď" style="font-size: 18px; padding: 10px; width: 60%;">
+    <div style="margin-top: 20px;">
+      <button onclick="checkRiddleAnswerCustomer()" style="font-size: 18px; padding: 10px 20px;">Zkontrolovat</button>
+    </div>
+    <p id="riddle-feedback" style="margin-top: 20px; font-weight: bold;"></p>
+  </div>
+`;
+
+      popup.style.position = "fixed";
+      popup.style.zIndex = "9999";
+      popup.style.top = "0";
+      popup.style.left = "0";
+      popup.style.width = "100vw";
+      popup.style.height = "100vh";
+      popup.style.background = "rgba(0, 0, 0, 0.7)";
+      popup.style.display = "flex";
+      popup.style.justifyContent = "center";
+      popup.style.alignItems = "center";
+      document.body.appendChild(popup);
+    }
+
+
+
+// Hadanka Dev
+function showRiddleDev() {
+      const popup = document.createElement("div");
+      popup.id = "riddle-popup";
+      
+popup.innerHTML = `
+  <div id="riddle-content" style="
+    background: white;
+    padding: 60px;
+    border-radius: 12px;
+    width: 800px;
+    max-width: 95vw;
+    text-align: center;
+    font-size: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
+  ">
+    <h2 style="font-size: 32px; margin-bottom: 20px;">Hádanka</h2>
+    <p style="margin-bottom: 30px;">
+      Ezekiel 1-9 <br>
+      Středně vysoké základy <br>
+      Mládí povznáší <br>
+      Avšak až trojka <br>
+      Ducha ti povznese
+    </p>
+    <div class="riddle-images" style="margin-bottom: 30px;">
+      <img src="skola1.JPG" alt="Skola 1" style="max-width: 45%; margin: 10px;">
+      <img src="skola2.JPG"" alt="Skola 2" style="max-width: 45%; margin: 10px;">
+    </div>
+    <input type="text" id="riddle-answer" placeholder="Tvoje odpověď" style="font-size: 18px; padding: 10px; width: 60%;">
+    <div style="margin-top: 20px;">
+      <button onclick="checkRiddleAnswerDev()" style="font-size: 18px; padding: 10px 20px;">Zkontrolovat</button>
+    </div>
+    <p id="riddle-feedback" style="margin-top: 20px; font-weight: bold;"></p>
+  </div>
+`;
+
+      popup.style.position = "fixed";
+      popup.style.zIndex = "9999";
+      popup.style.top = "0";
+      popup.style.left = "0";
+      popup.style.width = "100vw";
+      popup.style.height = "100vh";
+      popup.style.background = "rgba(0, 0, 0, 0.7)";
+      popup.style.display = "flex";
+      popup.style.justifyContent = "center";
+      popup.style.alignItems = "center";
+      document.body.appendChild(popup);
+    }
+
+
+
+// Hadanka Qlik
+function showRiddleQlik() {
+      const popup = document.createElement("div");
+      popup.id = "riddle-popup";
+      
+popup.innerHTML = `
+  <div id="riddle-content" style="
+    background: white;
+    padding: 60px;
+    border-radius: 12px;
+    width: 800px;
+    max-width: 95vw;
+    text-align: center;
+    font-size: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
+  ">
+    <h2 style="font-size: 32px; margin-bottom: 20px;">Hádanka</h2>
+    <p style="margin-bottom: 30px;">
+      xOxOxOOx <br>
+      xOxOxOxO <br> 
+      xOxOxOOx <br>
+      xOxOxOxO
+    </p>
+    <div class="riddle-images" style="margin-bottom: 30px;">
+      <img src="qlik1.jpg" alt="Qlik 1" style="max-width: 45%; margin: 10px;">
+      <img src="qlik2.png" alt="Qlik 2" style="max-width: 45%; margin: 10px;">
+    </div>
+    <input type="text" id="riddle-answer" placeholder="Tvoje odpověď" style="font-size: 18px; padding: 10px; width: 60%;">
+    <div style="margin-top: 20px;">
+      <button onclick="checkRiddleAnswerQlik()" style="font-size: 18px; padding: 10px 20px;">Zkontrolovat</button>
+    </div>
+    <p id="riddle-feedback" style="margin-top: 20px; font-weight: bold;"></p>
+  </div>
+`;
+
+      popup.style.position = "fixed";
+      popup.style.zIndex = "9999";
+      popup.style.top = "0";
+      popup.style.left = "0";
+      popup.style.width = "100vw";
+      popup.style.height = "100vh";
+      popup.style.background = "rgba(0, 0, 0, 0.7)";
+      popup.style.display = "flex";
+      popup.style.justifyContent = "center";
+      popup.style.alignItems = "center";
+      document.body.appendChild(popup);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    function talkToCharacter(event) {
+      event.stopPropagation(); // aby se nespustil handleClick
+      const existingBubble = document.getElementById("speech-bubble");
+      if (existingBubble) existingBubble.remove();
+
+      const bubble = document.createElement("div");
+      bubble.id = "speech-bubble";
+      bubble.textContent = "Co zas?";
+      bubble.style.position = "absolute";
+      bubble.style.left = character.style.left;
+      bubble.style.top = (parseInt(character.style.top || 0) - 40) + "px";
+      bubble.style.background = "white";
+      bubble.style.border = "1px solid black";
+      bubble.style.borderRadius = "10px";
+      bubble.style.padding = "5px 10px";
+      bubble.style.zIndex = 20;
+
+      document.getElementById("game-container").appendChild(bubble);
+
+      setTimeout(() => {
+        const existing = document.getElementById("speech-bubble");
+        if (existing) existing.remove();
+      }, 2000);
+    }
+    
+    /*document.getElementById("bike").addEventListener("click", function(event) {
+      event.stopPropagation();
+      const existing = document.getElementById("speech-bubble");
+      if (existing) existing.remove();
+
+      const bubble = document.createElement("div");
+      bubble.id = "speech-bubble";
+      bubble.textContent = "Nene, až po práci.";
+      bubble.style.position = "absolute";
+      bubble.style.left = this.style.left;
+      bubble.style.top = (parseInt(this.style.top || 0) - 40) + "px";
+      bubble.style.background = "white";
+      bubble.style.border = "1px solid black";
+      bubble.style.borderRadius = "10px";
+      bubble.style.padding = "5px 10px";
+      bubble.style.zIndex = 20;
+
+      document.getElementById("game-container").appendChild(bubble);
+
+      setTimeout(() => {
+        const existing = document.getElementById("speech-bubble");
+        if (existing) existing.remove();
+      }, 2000);
+    });*/
+
+    
+
+    //Tohle je Pro Oberon Výsledek
+function checkRiddleAnswer() {
+  const answer = document.getElementById("riddle-answer").value.trim().toLowerCase();
+  const feedback = document.getElementById("riddle-feedback");
+
+  if (answer === "oberon") {
+    feedback.textContent = "Správně!";
+
+    setTimeout(() => {
+      // Zavřít okno s hádankou
+      const popup = document.getElementById("riddle-popup");
+      if (popup) popup.remove();
+
+      document.getElementById("Franz-King").style.display = "inline"; 
+      franzUnlocked = true;
+
+     showPopupWindow('Oberon1-window', 'Oberon1.JPG', 'Oberon1', () => {
+      showPopupWindow('Oberon2-window', 'Oberon2.JPG', 'Oberon2')
+});
+
+    }, 1500);
+
+  } else {
+    feedback.textContent = "Špatně, zkus to znovu.";
+  }
+}
+
+
+
+
+  //Tohle je Pro Elfa Výsledek
+  function checkRiddleAnswerElf() {
+  const answer = document.getElementById("riddle-answer").value.trim().toLowerCase();
+  const feedback = document.getElementById("riddle-feedback");
+
+  if (answer === "cloud") {
+    feedback.textContent = "Správně!";
+
+    setTimeout(() => {
+      // Zavřít okno s hádankou
+      const popup = document.getElementById("riddle-popup");
+      if (popup) popup.remove();
+
+      document.getElementById("Dev-Monk").style.display = "inline"; 
+      devUnlocked = true;
+
+
+      showPopupWindow('elf3-window', 'Elf3.JPG', 'Elf3', () => {
+        showPopupWindow('elf2-window', 'Elf2.JPG', 'Elf2', () => {
+          showPopupWindow('elf1-window', 'Elf1.JPG', 'Elf1');
+  });
+});
+   
+    }, 1500);
+
+
+
+  } else {
+    feedback.textContent = "Špatně, zkus to znovu.";
+  }
+}
+
+
+  //Tohle je Pro Customer Výsledek
+  function checkRiddleAnswerCustomer() {
+  const answer = document.getElementById("riddle-answer").value.trim().toLowerCase();
+  const feedback = document.getElementById("riddle-feedback");
+
+  if (answer === "metr") {
+    feedback.textContent = "Správně!";
+
+    setTimeout(() => {
+      // Zavřít okno s hádankou
+      const popup = document.getElementById("riddle-popup");
+      if (popup) popup.remove();
+
+      document.getElementById("Qlik-Warrior").style.display = "inline"; 
+      qlikUnlocked = true;
+     
+   
+
+      showPopupWindow('customer1-window', 'Customer1.JPG', 'Customer1', () => {
+      showPopupWindow('customer2-window', 'Customer2.JPG', 'Customer2')
+});
+
+    }, 1500);
+
+
+
+  } else {
+    feedback.textContent = "Špatně, zkus to znovu.";
+  }
+}
+
+
+  //Tohle je Pro DEV Výsledek
+  function checkRiddleAnswerDev() {
+  const answer = document.getElementById("riddle-answer").value.trim().toLowerCase();
+  const feedback = document.getElementById("riddle-feedback");
+
+  if (answer === "škola") {
+    feedback.textContent = "Správně!";
+
+    setTimeout(() => {
+      // Zavřít okno s hádankou
+      const popup = document.getElementById("riddle-popup");
+      if (popup) popup.remove();
+      
+      document.getElementById("Customer-Elf").style.display = "inline"; 
+      customerUnlocked = true;
+
+      showPopupWindow('dev1-window', 'Dev1.JPG', 'Dev1', () => {
+  showPopupWindow('dev2-window', 'Dev2.JPG', 'Dev2')
+});
+   
+    }, 1500);
+
+
+
+  } else {
+    feedback.textContent = "Špatně, zkus to znovu.";
+  }
+}
+
+
+  //Tohle je Pro Qlik Výsledek
+  function checkRiddleAnswerQlik() {
+  const answer = document.getElementById("riddle-answer").value.trim().toLowerCase();
+  const feedback = document.getElementById("riddle-feedback");
+
+  if (answer === "qlik") {
+    feedback.textContent = "Správně!";
+
+    setTimeout(() => {
+      // Zavřít okno s hádankou
+      const popup = document.getElementById("riddle-popup");
+      if (popup) popup.remove();
+      document.getElementById("oberon-wizard").style.display = "inline"; 
+      oberonUnlocked = true;
+   
+      showPopupWindow('qlik1-window', 'Qlik3.JPG', 'Qlik3', () => {
+      showPopupWindow('qlik2-window', 'Qlik2.JPG', 'Qlik2')
+});
+
+    }, 1500);
+
+
+
+  } else {
+    feedback.textContent = "Špatně, zkus to znovu.";
+  }
+}
+
+//------Kolo
+window.onload = function () {
+  const kolo = document.getElementById("Obrazek-Kolo");
+
+  if (kolo) {
+    kolo.addEventListener("click", function(event) {
+      event.stopPropagation();
+
+      const existing = document.getElementById("speech-bubble");
+      if (existing) existing.remove();
+
+      const character = document.getElementById("character");
+
+      const bubble = document.createElement("div");
+      bubble.id = "speech-bubble";
+      bubble.textContent = "Teď ne, až po práci.";
+      bubble.style.position = "absolute";
+      bubble.style.left = character.style.left;
+      bubble.style.top = (parseInt(character.style.top || 0) - 40) + "px";
+      bubble.style.background = "white";
+      bubble.style.border = "1px solid black";
+      bubble.style.borderRadius = "10px";
+      bubble.style.padding = "5px 10px";
+      bubble.style.zIndex = 20;
+
+      document.getElementById("game-container").appendChild(bubble);
+
+      setTimeout(() => {
+        const bubbleToRemove = document.getElementById("speech-bubble");
+        if (bubbleToRemove) bubbleToRemove.remove();
+      }, 2000);
+    });
+  }
+};
+
+
+
+
+</script>
+    
+    
+</body>
+</html>
