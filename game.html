@@ -218,7 +218,7 @@ function showPopupWindow(popupId, imagePath, imageAlt, onCloseCallback = null) {
           setTimeout(() => {
             stopWalkingAnimation();
             if (inAreaFranz) {
-              showPopupWindow('Franz-window1','Customer_Focus.jpg','Franz1', () => {
+              showPopupWindow('Franz-window1','Customer_Focus.JPG','Franz1', () => {
               showPopupWindow('Franz-window2', 'Konec.png', 'Konec')
 });
             }
@@ -347,8 +347,8 @@ popup.innerHTML = `
 
     </p>
     <div class="riddle-images" style="margin-bottom: 30px;">
-      <img src="metr1.jpg" alt="Matr1" style="max-width: 45%; margin: 10px;">
-      <img src="metr2.jpg" alt="Matr2" style="max-width: 45%; margin: 10px;">
+      <img src="metr1.jpg" alt="Metr1" style="max-width: 45%; margin: 10px;">
+      <img src="metr2.JPG" alt="Metr2" style="max-width: 45%; margin: 10px;">
     </div>
     <input type="text" id="riddle-answer" placeholder="Tvoje odpověď" style="font-size: 18px; padding: 10px; width: 60%;">
     <div style="margin-top: 20px;">
@@ -448,7 +448,7 @@ popup.innerHTML = `
       xOxOxOxO
     </p>
     <div class="riddle-images" style="margin-bottom: 30px;">
-      <img src="qlik1.jpg" alt="Qlik 1" style="max-width: 45%; margin: 10px;">
+      <img src="qlik1.JPG" alt="Qlik 1" style="max-width: 45%; margin: 10px;">
       <img src="qlik2.png" alt="Qlik 2" style="max-width: 45%; margin: 10px;">
     </div>
     <input type="text" id="riddle-answer" placeholder="Tvoje odpověď" style="font-size: 18px; padding: 10px; width: 60%;">
@@ -679,7 +679,7 @@ function checkRiddleAnswer() {
       document.getElementById("oberon-wizard").style.display = "inline"; 
       oberonUnlocked = true;
    
-      showPopupWindow('qlik1-window', 'Qlik3.JPG', 'Qlik3', () => {
+      showPopupWindow('qlik1-window', 'qlik3.JPG', 'Qlik3', () => {
       showPopupWindow('qlik2-window', 'Qlik2.JPG', 'Qlik2')
 });
 
